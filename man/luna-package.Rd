@@ -47,16 +47,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Shaun Purcell \email{smpurcell@bwh.harvard.edu}
+\strong{Maintainer}: remnrem \email{luna.remnrem@gmail.com}
 
 Authors:
 \itemize{
-  \item Shaun Purcell \email{smpurcell@bwh.harvard.edu}
-}
-
-Other contributors:
-\itemize{
-  \item John Muschelli (\href{https://orcid.org/0000-0001-6469-1750}{ORCID}) [contributor]
+  \item remnrem \email{luna.remnrem@gmail.com}
 }
 
 }

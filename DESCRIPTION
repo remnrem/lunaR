@@ -2,12 +2,8 @@ Package: luna
 Type: Package
 Title: Analysis of Sleep Signal Data with 'Luna'
 Version: 1.8.0
-Authors@R: c(
-    person("Shaun", "Purcell", role = c("aut", "cre"),
-           email = "smpurcell@bwh.harvard.edu"),
-    person("John", "Muschelli", role = "ctb",
-           comment = c(ORCID = "0000-0001-6469-1750"))
-    )
+Authors@R:
+    person("remnrem", role = c("aut", "cre"), email = "luna.remnrem@gmail.com")
 Description: An R interface to the 'Luna' toolset for the analysis of sleep
     and other physiological signal data (EDF/EDF+). It mirrors the API of
     the 'lunapi' Python package <https://pypi.org/project/lunapi/>, which
