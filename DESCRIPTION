@@ -1,0 +1,39 @@
+Package: luna
+Type: Package
+Title: Analysis of Sleep Signal Data with 'Luna'
+Version: 1.8.0
+Authors@R: c(
+    person("Shaun", "Purcell", role = c("aut", "cre"),
+           email = "smpurcell@bwh.harvard.edu"),
+    person("John", "Muschelli", role = "ctb",
+           comment = c(ORCID = "0000-0001-6469-1750"))
+    )
+Description: An R interface to the 'Luna' toolset for the analysis of sleep
+    and other physiological signal data (EDF/EDF+). It mirrors the API of
+    the 'lunapi' Python package <https://pypi.org/project/lunapi/>, which
+    it uses via 'reticulate': projects and sample lists, instances with
+    their signals and annotations, 'Luna' commands with output as typed
+    data frames, and plots. Requires no compilation: the 'Luna' engine is
+    provided by the 'lunapi' wheel, which is installed on first use.
+License: GPL (>= 3)
+URL: https://zzz.nyspi.org/luna/, https://github.com/remnrem/lunaR
+BugReports: https://github.com/remnrem/lunaR/issues
+Depends: R (>= 4.1.0)
+Imports:
+    R6,
+    reticulate (>= 1.41),
+    graphics,
+    grDevices,
+    stats,
+    utils
+Suggests:
+    testthat (>= 3.0.0),
+    withr
+SystemRequirements: Python (>= 3.9, < 3.15) with the 'lunapi' Python
+    package (>= 1.7.1, < 2), provisioned automatically by 'reticulate'.
+    'lunapi' provides binary wheels for macOS (x86_64, arm64), Linux
+    x86_64 (glibc >= 2.28) and Windows x86_64.
+Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.1.1
