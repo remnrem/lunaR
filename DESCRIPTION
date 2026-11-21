@@ -16,7 +16,7 @@ Description: An R interface to the 'Luna' toolset for the analysis of sleep
     data frames, and plots. Requires no compilation: the 'Luna' engine is
     provided by the 'lunapi' wheel, which is installed on first use.
 License: GPL (>= 3)
-URL: https://zzz.nyspi.org/luna/, https://github.com/remnrem/lunaR
+URL: https://zzz-luna.org/luna/, https://github.com/remnrem/lunaR
 BugReports: https://github.com/remnrem/lunaR/issues
 Depends: R (>= 4.1.0)
 Imports:

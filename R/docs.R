@@ -38,7 +38,9 @@
 #' * `eng`: the underlying lunapi engine (a reticulate object).
 #'
 #' @name proj
-#' @seealso [lp], [inst], [ProcResult]
+#' @seealso [lp], [inst], [ProcResult]; lunapi's `proj` documentation
+#'   <https://zzz-luna.org/luna/lunapi/ref/>; Luna commands
+#'   <https://zzz-luna.org/luna/ref/>
 NULL
 
 #' A Luna instance: one recording
@@ -58,7 +60,8 @@ NULL
 #'   `has_channels(ch)` / `has()`.
 #'
 #' @section Running commands:
-#' * `eval(cmdstr)`: run Luna commands; returns (invisibly) the table of
+#' * `eval(cmdstr)`: run Luna commands (see
+#'   <https://zzz-luna.org/luna/ref/>); returns (invisibly) the table of
 #'   output (Command, Strata). Character vectors are run in sequence.
 #' * `proc(cmdstr)`, `silent_proc(cmdstr)`: the same, returning a
 #'   [ProcResult].
@@ -93,5 +96,7 @@ NULL
 #' wrapped here, such as `pops()` or `extract_event_waveforms()`.
 #'
 #' @name inst
-#' @seealso [lp], [proj], [ProcResult]
+#' @seealso [lp], [proj], [ProcResult]; lunapi's `inst` documentation
+#'   <https://zzz-luna.org/luna/lunapi/ref/>; Luna commands
+#'   <https://zzz-luna.org/luna/ref/>
 NULL

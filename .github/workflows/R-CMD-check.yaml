@@ -37,7 +37,14 @@ jobs:
           needs: check
       # warm up: let reticulate provision Python + lunapi before the check
       - name: Provision lunapi
-        run: Rscript -e 'reticulate::py_require("lunapi>=1.7.1,<2", python_version = ">=3.9,<3.15"); reticulate::import("lunapi"); cat("lunapi ok\n")'
+        # run as an R script, so no shell quoting is involved (PowerShell on
+        # Windows mangles quotes in Rscript -e '...')
+        shell: Rscript {0}
+        run: |
+          reticulate::py_require("lunapi>=1.7.1,<2", python_version = ">=3.9,<3.15")
+          lp <- reticulate::import("lunapi")
+          print(reticulate::py_config())
+          cat("lunapi", reticulate::py_to_r(lp$`__version__`), "ok\n")
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true

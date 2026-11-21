@@ -11,6 +11,12 @@
 #' No compiler or system libraries are needed: the Luna engine ships inside
 #' the lunapi wheel. Python starts on the first call that needs Luna.
 #'
+#' @section More information:
+#' * Luna home page: <https://zzz-luna.org/luna/>
+#' * Luna commands and their options: <https://zzz-luna.org/luna/ref/>
+#' * lunapi, whose API this package mirrors: <https://zzz-luna.org/luna/lunapi/>
+#'   and <https://zzz-luna.org/luna/lunapi/ref/>
+#'
 #' @section Setup:
 #' By default, loading luna asks reticulate to provide a Python with
 #' lunapi (`reticulate::py_require()`); nothing is downloaded until Luna

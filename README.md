@@ -1,6 +1,6 @@
 # luna
 
-R interface to [Luna](https://zzz.nyspi.org/luna/), the toolset for sleep
+R interface to [Luna](https://zzz-luna.org/luna/), the toolset for sleep
 and physiological signal analysis. It mirrors the API of the
 [lunapi](https://pypi.org/project/lunapi/) Python package, which it uses
 via [reticulate](https://rstudio.github.io/reticulate/).
@@ -41,7 +41,13 @@ r$table("STAGE", "E")
 i$hypno(); i$psd("C3"); lp$topo_heat(chs, z)
 ```
 
-See `?lp`, `?proj`, `?inst` and `?ProcResult` for every method.
+See `?lp`, `?proj`, `?inst` and `?ProcResult` for every method. Luna
+commands and their options are documented in the
+[command reference](https://zzz-luna.org/luna/ref/), and the methods
+themselves in the [lunapi reference](https://zzz-luna.org/luna/lunapi/ref/);
+the [lunapi tutorial](https://zzz-luna.org/luna/lunapi/) translates line by
+line.
+
 Everything else in lunapi (`moonbeam`, `proc_parallel()`, `pops()`, ...)
 is reachable as `lp$py` (the Python module) and `i$edf`.
 

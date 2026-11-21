@@ -17,6 +17,16 @@ becomes \verb{p <- lp$proj(); i <- p$inst(1); i$eval("PSD sig=C3"); i$table("PSD
 No compiler or system libraries are needed: the Luna engine ships inside
 the lunapi wheel. Python starts on the first call that needs Luna.
 }
+\section{More information}{
+
+\itemize{
+\item Luna home page: \url{https://zzz-luna.org/luna/}
+\item Luna commands and their options: \url{https://zzz-luna.org/luna/ref/}
+\item lunapi, whose API this package mirrors: \url{https://zzz-luna.org/luna/lunapi/}
+and \url{https://zzz-luna.org/luna/lunapi/ref/}
+}
+}
+
 \section{Setup}{
 
 By default, loading luna asks reticulate to provide a Python with
@@ -30,7 +40,7 @@ is first used. To manage Python yourself, set
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://zzz.nyspi.org/luna/}
+  \item \url{https://zzz-luna.org/luna/}
   \item \url{https://github.com/remnrem/lunaR}
   \item Report bugs at \url{https://github.com/remnrem/lunaR/issues}
 }

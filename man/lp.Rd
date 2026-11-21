@@ -89,3 +89,8 @@ head(i$table("PSD", "CH_F"))
 lp$fetch_tbls("PSD")
 \dontshow{\}) # examplesIf}
 }
+\seealso{
+\link{proj}, \link{inst}, \link{ProcResult}; the lunapi reference
+\url{https://zzz-luna.org/luna/lunapi/ref/} (which these functions mirror)
+and the Luna command reference \url{https://zzz-luna.org/luna/ref/}.
+}

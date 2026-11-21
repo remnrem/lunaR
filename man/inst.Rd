@@ -24,7 +24,8 @@ works): events as data frames, times in seconds.
 \section{Running commands}{
 
 \itemize{
-\item \code{eval(cmdstr)}: run Luna commands; returns (invisibly) the table of
+\item \code{eval(cmdstr)}: run Luna commands (see
+\url{https://zzz-luna.org/luna/ref/}); returns (invisibly) the table of
 output (Command, Strata). Character vectors are run in sequence.
 \item \code{proc(cmdstr)}, \code{silent_proc(cmdstr)}: the same, returning a
 \link{ProcResult}.
@@ -68,5 +69,7 @@ wrapped here, such as \code{pops()} or \code{extract_event_waveforms()}.
 }
 
 \seealso{
-\link{lp}, \link{proj}, \link{ProcResult}
+\link{lp}, \link{proj}, \link{ProcResult}; lunapi's \code{inst} documentation
+\url{https://zzz-luna.org/luna/lunapi/ref/}; Luna commands
+\url{https://zzz-luna.org/luna/ref/}
 }

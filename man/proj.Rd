@@ -54,5 +54,7 @@ variables; with \code{key} its value (\code{NULL} if unset); with \code{key} and
 }
 
 \seealso{
-\link{lp}, \link{inst}, \link{ProcResult}
+\link{lp}, \link{inst}, \link{ProcResult}; lunapi's \code{proj} documentation
+\url{https://zzz-luna.org/luna/lunapi/ref/}; Luna commands
+\url{https://zzz-luna.org/luna/ref/}
 }

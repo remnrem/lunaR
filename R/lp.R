@@ -55,6 +55,9 @@
 #' not wrapped here, such as `moonbeam`, `destrat`, `proc_parallel()` or
 #' `pops()`; their results are reticulate objects.
 #'
+#' @seealso [proj], [inst], [ProcResult]; the lunapi reference
+#'   <https://zzz-luna.org/luna/lunapi/ref/> (which these functions mirror)
+#'   and the Luna command reference <https://zzz-luna.org/luna/ref/>.
 #' @format An environment of functions.
 #' @export
 #' @examplesIf interactive()
