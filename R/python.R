@@ -4,8 +4,8 @@
 # lunapi releases and Python versions this package supports.  The upper
 # bounds keep reticulate from choosing a Python for which lunapi has no
 # wheel (lunapi ships no source distribution).
-.lunapi_requirement <- "lunapi>=1.7.1,<2"
-.lunapi_min_version <- "1.7.1"
+.lunapi_requirement <- "lunapi>=1.8.0,<2"
+.lunapi_min_version <- "1.8.0"
 .python_requirement <- ">=3.9,<3.15"
 
 .auto_install <- function() {
@@ -59,28 +59,26 @@
     }
   }
 
+  # did someone other than luna start Python before luna's first attempt?
+  started_elsewhere <- was_running && !isTRUE(.luna$tried)
+  .luna$tried <- TRUE
+
   lp <- tryCatch(reticulate::import("lunapi", convert = FALSE),
                  error = function(e) e)
   if (inherits(lp, "error")) {
-    msg <- .clean_py_message(conditionMessage(lp))
-    hint <- if (was_running) {
-      c(sprintf("Python (%s) was already running without lunapi, probably started by another package.",
-                reticulate::py_config()$python),
-        "Restart R and use luna before other Python-based packages, or run install_lunapi() to add lunapi to that Python.")
-    } else if (!.auto_install()) {
-      "Automatic installation is off (luna.auto_install / LUNA_AUTO_INSTALL): run install_lunapi(), or point RETICULATE_PYTHON at a Python with lunapi."
-    } else {
-      "Run luna_config() for details, or install_lunapi() if you manage your own Python."
-    }
-    .luna_abort(c("could not load the 'lunapi' Python package.",
-                  paste0("Python error: ", msg), hint), class = "luna_no_lunapi")
+    .luna_abort(.no_lunapi_message(.clean_py_message(conditionMessage(lp)),
+                                   started_elsewhere), class = "luna_no_lunapi")
   }
 
   ver <- as.character(reticulate::py_to_r(lp$`__version__`))
   if (utils::compareVersion(ver, .lunapi_min_version) < 0) {
-    .luna_abort(sprintf(
-      "lunapi %s is too old: luna needs %s. Upgrade with install_lunapi().",
-      ver, .lunapi_requirement))
+    .luna_abort(c(
+      sprintf("lunapi %s is too old: luna needs %s.", ver, .lunapi_requirement),
+      sprintf("R is using the Python at %s.", .current_python()),
+      "Upgrade lunapi there with install_lunapi(), or use a Python with a newer lunapi:",
+      "restart R and run reticulate::use_python(\"/path/to/python\", required = TRUE) before",
+      "library(luna), or add RETICULATE_PYTHON=/path/to/python to ~/.Renviron and restart R."
+    ), class = "luna_no_lunapi")
   }
 
   .luna$bridge <- reticulate::import_from_path(
@@ -90,6 +88,34 @@
   .luna$eng <- lp$proj$eng
   .luna$version <- ver
   invisible(TRUE)
+}
+
+.current_python <- function() {
+  if (!reticulate::py_available(initialize = FALSE)) return("(not started)")
+  tryCatch(reticulate::py_config()$python, error = function(e) "(unknown)")
+}
+
+# Plain-language explanation for when lunapi can't be imported.
+.no_lunapi_message <- function(pyerr, started_elsewhere = FALSE) {
+  py <- .current_python()
+  why <- tryCatch(reticulate::py_config()$forced, error = function(e) NULL)
+  c(
+    "lunapi is not available in the Python that R is using:",
+    paste0("  ", py, if (length(why) && nzchar(why)) paste0("  (chosen by: ", why, ")")),
+    paste0("  Python says: ", pyerr),
+    if (started_elsewhere)
+      "  Python was already started before luna was first used, so luna could not choose which Python to use.",
+    "To fix it, do one of the following:",
+    "  * use a Python that already has lunapi, e.g. /path/to/venv/bin/python:",
+    "    - for this session: restart R, then run",
+    "        reticulate::use_python(\"/path/to/venv/bin/python\", required = TRUE)",
+    "      before library(luna) or any other use of Python;",
+    "    - for every session: add the line",
+    "        RETICULATE_PYTHON=/path/to/venv/bin/python",
+    "      to ~/.Renviron, then restart R;",
+    "  * or install lunapi into the Python above: run install_lunapi(), then restart R.",
+    "R can use only one Python per session, which is why a restart is needed."
+  )
 }
 
 .clean_py_message <- function(msg) {

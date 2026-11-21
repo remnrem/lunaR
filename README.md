@@ -75,6 +75,19 @@ used. `luna_config()` shows what is in use. lunapi has wheels for macOS
 (x86_64, arm64), Linux x86_64 (glibc >= 2.28) and Windows x86_64; on other
 platforms luna stops with a message saying so.
 
-To manage Python yourself, set `options(luna.auto_install = FALSE)` or
-`LUNA_AUTO_INSTALL=false` before loading luna (or set `RETICULATE_PYTHON`),
-and run `install_lunapi()` to add lunapi to that environment.
+To use a Python that already has lunapi (e.g. your own virtualenv), choose
+it before anything starts Python:
+
+```r
+# this session only (in a fresh R session, before library(luna)):
+reticulate::use_python("/path/to/venv/bin/python", required = TRUE)
+library(luna)
+```
+
+or, for every session, add `RETICULATE_PYTHON=/path/to/venv/bin/python` to
+`~/.Renviron` and restart R. R can use only one Python per session, so
+switching always needs a restart.
+
+To manage Python yourself without luna installing anything, set
+`options(luna.auto_install = FALSE)` or `LUNA_AUTO_INSTALL=false` before
+loading luna, and run `install_lunapi()` to add lunapi to your environment.

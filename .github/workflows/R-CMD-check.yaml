@@ -41,7 +41,7 @@ jobs:
         # Windows mangles quotes in Rscript -e '...')
         shell: Rscript {0}
         run: |
-          reticulate::py_require("lunapi>=1.7.1,<2", python_version = ">=3.9,<3.15")
+          reticulate::py_require("lunapi>=1.8.0,<2", python_version = ">=3.9,<3.15")
           lp <- reticulate::import("lunapi")
           print(reticulate::py_config())
           cat("lunapi", reticulate::py_to_r(lp$`__version__`), "ok\n")
