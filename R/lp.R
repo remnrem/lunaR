@@ -52,7 +52,7 @@
 #'
 #' @section Everything else:
 #' `lp$py` is the lunapi Python module itself (via reticulate), for parts
-#' not wrapped here, such as `moonbeam`, `destrat`, `proc_parallel()` or
+#' not wrapped here, such as `moonbeam`, `destrat` or
 #' `pops()`; their results are reticulate objects.
 #'
 #' @seealso [proj], [inst], [ProcResult]; the lunapi reference

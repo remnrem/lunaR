@@ -38,6 +38,9 @@ r <- p$proc("HEADERS & STAGE")        # whole sample list -> ProcResult
 r[["HEADERS: CH"]]
 r$table("STAGE", "E")
 
+r <- p$procn("PSD sig=EEG spectrum", workers = 4)  # parallel sample-list processing
+r$table("PSD", "CH_F")
+
 i$hypno(); i$psd("C3"); lp$topo_heat(chs, z)
 ```
 
@@ -48,8 +51,17 @@ themselves in the [lunapi reference](https://zzz-luna.org/luna/lunapi/ref/);
 the [lunapi tutorial](https://zzz-luna.org/luna/lunapi/) translates line by
 line.
 
-Everything else in lunapi (`moonbeam`, `proc_parallel()`, `pops()`, ...)
+Everything else in lunapi (`moonbeam`, `destrat`, `pops()`, ...)
 is reachable as `lp$py` (the Python module) and `i$edf`.
+
+`p$procn()` (also `p$proc_parallel()`) uses lunapi worker processes and
+returns the same R `ProcResult` interface as `p$proc()`. Workers receive
+variables through `params = list(...)` or `param_file`, rather than
+inheriting the parent's variables. Failed records are collected in
+`r$errors`; `r$ok` reports success. With `strict = TRUE`, failures raise
+a `luna_proc_error` condition with the partial result in `e$result`.
+Row/ID selection and `out_db`/`out_text` file output are also supported;
+see `?proj`.
 
 ### Differences from lunapi
 

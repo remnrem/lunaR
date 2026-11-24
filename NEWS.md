@@ -1,5 +1,9 @@
 # luna 1.8.0
 
+* Added `p$procn()` and `p$proc_parallel()`: lunapi worker processes with
+  R `ProcResult` tables, per-record errors and metadata, explicit worker
+  parameters, row/ID selection, and database or text output. Strict
+  failures carry the partial result in the R condition's `result` field.
 * Complete rewrite as a pure-R package on top of the lunapi Python package
   (via reticulate), replacing the compiled `luna` package. No compiler or
   system libraries are needed to install.

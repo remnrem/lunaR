@@ -4,26 +4,30 @@
 \alias{ProcResult}
 \title{Results of \code{proc()}}
 \description{
-Returned by \code{proj$proc()} and \code{inst$proc()}, mirroring lunapi's
+Returned by \code{proj$proc()}, \code{proj$procn()}, \code{proj$proc_parallel()} and
+\code{inst$proc()}, mirroring lunapi's
 \code{ProcResult}. Unlike lunapi's, it holds its own copy of the tables, so
 later commands do not change it. Tables are converted to data frames
 when first accessed.
 }
 \section{Usage}{
-```
+\preformatted{
 r <- i$proc("PSD sig=C3 spectrum")
-r$keys()                   # "PSD: CH", "PSD: CH_F", ...
-r[["PSD: CH_F"]]           # a data frame, as r['PSD: CH_F'] in Python
-r$table("PSD", "CH_F")     # the same; strata may also be c("F", "CH")
+r$keys()
+r[["PSD: CH_F"]]
+r$table("PSD", "CH_F")
 r$strata(); r$commands(); r$has_table("PSD", "CH")
 r$get("PSD: B_CH", default = NULL)
-r$tables                   # named list of all tables
-r$ok                       # TRUE (errors raise R conditions instead)
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{
-
-["PSD: CH_F"]: R:\%22PSD:\%20CH_F\%22
-['PSD: CH_F']: R:'PSD:\%20CH_F'
-}\if{html}{\out{</div>}}
+r$tables
+r$ok
+r$errors
+r$records; r$stdout; r$workers; r$out_paths
 }
-
+}
+\details{
+Parallel runs collect per-record errors by default. With \code{strict = TRUE},
+failures raise a \code{luna_proc_error} condition whose \code{result} field contains
+the partial \link{ProcResult}. Serial failures always raise R errors.
+With \code{out_db} or \code{out_text}, tables are written to files: metadata and
+\code{out_paths} remain available, but table access raises \code{luna_file_output}.
+}

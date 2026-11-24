@@ -50,13 +50,14 @@
 
 #' Results of `proc()`
 #'
-#' Returned by `proj$proc()` and `inst$proc()`, mirroring lunapi's
+#' Returned by `proj$proc()`, `proj$procn()`, `proj$proc_parallel()` and
+#' `inst$proc()`, mirroring lunapi's
 #' `ProcResult`. Unlike lunapi's, it holds its own copy of the tables, so
 #' later commands do not change it. Tables are converted to data frames
 #' when first accessed.
 #'
 #' @section Usage:
-#' ```
+#' ```r
 #' r <- i$proc("PSD sig=C3 spectrum")
 #' r$keys()                   # "PSD: CH", "PSD: CH_F", ...
 #' r[["PSD: CH_F"]]           # a data frame, as r['PSD: CH_F'] in Python
@@ -64,22 +65,34 @@
 #' r$strata(); r$commands(); r$has_table("PSD", "CH")
 #' r$get("PSD: B_CH", default = NULL)
 #' r$tables                   # named list of all tables
-#' r$ok                       # TRUE (errors raise R conditions instead)
+#' r$ok                       # no per-record errors
+#' r$errors                   # per-record errors from parallel runs
+#' r$records; r$stdout; r$workers; r$out_paths
 #' ```
+#'
+#' @details
+#' Parallel runs collect per-record errors by default. With `strict = TRUE`,
+#' failures raise a `luna_proc_error` condition whose `result` field contains
+#' the partial [ProcResult]. Serial failures always raise R errors.
+#' With `out_db` or `out_text`, tables are written to files: metadata and
+#' `out_paths` remain available, but table access raises `luna_file_output`.
 #' @name ProcResult
 NULL
 
 ProcResult <- R6::R6Class("ProcResult",
   cloneable = FALSE,
   public = list(
-    # @field errors per-record errors (always empty: failures raise R errors)
+    # @field errors per-record errors from parallel runs
     errors = NULL,
-    # @field workers number of workers used (always 1)
+    stdout = NULL,
+    records = NULL,
+    out_paths = character(0),
+    # @field workers number of workers used
     workers = 1L,
 
     # @description Wraps a lunapi results dict (internal).
     # @param ts a Python dict `{cmd: {strata: (cols, data)}}`
-    initialize = function(ts) {
+    initialize = function(ts, metadata = NULL) {
       private$ts <- ts
       s <- .py(.br()$dict_strata(ts))
       private$pairs <- data.frame(
@@ -87,13 +100,26 @@ ProcResult <- R6::R6Class("ProcResult",
         stringsAsFactors = FALSE)
       private$cache <- list()
       self$errors <- data.frame(ID = character(0), error = character(0))
+      self$stdout <- self$records <- data.frame()
+      if (!is.null(metadata)) {
+        self$errors <- .frame_to_df(metadata[["errors"]])
+        self$stdout <- .frame_to_df(metadata[["stdout"]])
+        self$records <- .frame_to_df(metadata[["records"]])
+        self$workers <- as.integer(.py(metadata[["workers"]]))
+        self$out_paths <- as.character(unlist(.py(metadata[["out_paths"]])))
+        private$file_output <- isTRUE(.py(metadata[["file_output"]]))
+      }
     },
     # @description Table names, as `"CMD: STRATA"`.
-    keys = function() .table_key(private$pairs$Command, private$pairs$Strata),
+    keys = function() {
+      private$check_tables()
+      .table_key(private$pairs$Command, private$pairs$Strata)
+    },
     # @description One table.
     # @param cmd command name
     # @param strata strata, e.g. `"CH_F"` or `c("CH", "F")`
     table = function(cmd, strata = "BL") {
+      private$check_tables()
       k <- .resolve_table(private$pairs, cmd, strata)
       key <- .table_key(k[1], k[2])
       if (is.null(private$cache[[key]])) {
@@ -102,18 +128,26 @@ ProcResult <- R6::R6Class("ProcResult",
       private$cache[[key]]
     },
     # @description Available (Command, Strata) pairs.
-    strata = function() if (nrow(private$pairs)) private$pairs else NULL,
+    strata = function() {
+      private$check_tables()
+      if (nrow(private$pairs)) private$pairs else NULL
+    },
     # @description Commands with output.
-    commands = function() data.frame(Command = sort(unique(private$pairs$Command))),
+    commands = function() {
+      private$check_tables()
+      data.frame(Command = sort(unique(private$pairs$Command)))
+    },
     # @description Is a table present?
     # @param cmd,strata as for `table()`
     has_table = function(cmd, strata = "BL") {
+      if (private$file_output) return(FALSE)
       !inherits(try(.resolve_table(private$pairs, cmd, strata), silent = TRUE), "try-error")
     },
     # @description A table by key, or `default` if absent.
     # @param key `"CMD: STRATA"`
     # @param default returned if absent
     get = function(key, default = NULL) {
+      if (private$file_output) return(default)
       if (!key %in% self$keys()) return(default)
       self[[key]]
     },
@@ -124,21 +158,35 @@ ProcResult <- R6::R6Class("ProcResult",
     # @description Print a summary.
     # @param ... ignored
     print = function(...) {
+      if (private$file_output) {
+        cat("ProcResult: output written to files\n")
+        if (length(self$out_paths)) cat(paste0("  ", self$out_paths, collapse = "\n"), "\n")
+        return(invisible(self))
+      }
       cat(sprintf("ProcResult: %d table(s)\n", nrow(private$pairs)))
       if (nrow(private$pairs)) cat(paste0("  ", self$keys(), collapse = "\n"), "\n")
       invisible(self)
     }
   ),
   active = list(
-    # @field ok `TRUE`: failures raise R errors instead
-    ok = function() TRUE,
+    # @field ok whether there were no per-record errors
+    ok = function() nrow(self$errors) == 0L,
     # @field tables all tables, as a named list keyed `"CMD: STRATA"`
     tables = function() {
+      private$check_tables()
       stats::setNames(lapply(seq_len(nrow(private$pairs)), function(i)
         self$table(private$pairs$Command[i], private$pairs$Strata[i])), self$keys())
     }
   ),
-  private = list(ts = NULL, pairs = NULL, cache = NULL)
+  private = list(
+    ts = NULL, pairs = NULL, cache = NULL, file_output = FALSE,
+    check_tables = function() {
+      if (private$file_output) {
+        .luna_abort("results were written to files; use import_db() or lp$read_text_table()",
+                    class = "luna_file_output")
+      }
+    }
+  )
 )
 
 #' @export

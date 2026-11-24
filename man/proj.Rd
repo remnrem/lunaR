@@ -31,12 +31,51 @@ are 1-based here} (lunapi's are 0-based), consistent with \code{inst(n)}.
 returns a \link{ProcResult}. As in lunapi, a record that cannot be loaded
 stops the whole run; check with \code{validate()} first.
 \item \code{silent_proc(cmdstr)}: the same, with console output off.
+\item \code{procn(cmdstr, workers = NULL, batch_size = NULL, params = NULL,
+param_file = NULL, strict = FALSE, progress = TRUE, out_db = NULL,
+out_text = NULL, in_memory = NULL, n1 = NULL, n2 = NULL, ids = NULL,
+skip = NULL)}: process a file-backed sample list using lunapi worker
+processes, returning a \link{ProcResult} with R tables and per-record metadata.
+\code{proc_parallel()} is the same method under its longer name.
 \item \code{strata()}, \code{table(cmd, strata = "BL")}, \code{variables(cmd, strata)},
-\code{empty_result_set()}: the most recent results (from \code{proc()} or
+\code{empty_result_set()}: the most recent in-memory results (from \code{proc()}, \code{procn()} or
 \code{import_db()}). \code{strata} may be \code{"CH_F"} or \code{c("F", "CH")}.
 \item \code{import_db(f, s = NULL)}: load a \code{luna -o} database (optionally only
 IDs \code{s}); returns the IDs read, with tables available via \code{table()}.
 \item \code{desc()}, \code{commands()}.
+}
+}
+
+\section{Parallel processing}{
+
+\code{workers} defaults to half the available CPUs, capped at 10 and at the
+number of selected records. \code{batch_size} controls records per worker batch.
+Workers do not inherit the parent's project variables: pass them as a
+named list in \code{params}, or in a Luna \code{param_file}. Values in \code{params}
+override the file, and use the same conversion as \code{vars()}.
+\code{n1}/\code{n2} select inclusive, 1-based sample-list rows. \code{ids} and \code{skip}
+accept character vectors or whitespace-separated ID strings.
+\code{progress} is \code{TRUE}, \code{FALSE}, or an R function receiving progress events.
+
+By default, failed records are collected in \code{r$errors} while successful
+tables are retained; \code{r$ok} reports whether there were no failures.
+With \code{strict = TRUE}, failures raise a \code{luna_proc_error} condition with
+the partial \link{ProcResult} in \code{e$result}.
+
+\code{out_db} writes per-worker databases (\code{prefix-1.db}, etc.); \code{out_text}
+writes per-individual text tables. They are mutually exclusive and
+disable in-memory table collection. Leave \code{in_memory = NULL} for this
+automatic choice, or set it to \code{FALSE} for file output. The result
+retains \code{errors}, \code{stdout}, \code{records}, \code{workers} and \code{out_paths};
+table access raises \code{luna_file_output}. Read files with \code{import_db()}
+or \code{lp$read_text_table()}.
+
+\preformatted{
+p <- lp$proj()
+p$sample_list("s.lst")
+r <- p$procn("PSD sig=$\{s\} spectrum", workers = 4,
+              params = list(s = "EEG"))
+r$table("PSD", "CH_F")
 }
 }
 

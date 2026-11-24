@@ -9,9 +9,8 @@ These run on the Python side so that:
   instead of pandas object columns, which reticulate turns into R
   list-columns.
 
-Only the raw ``lunapi.lunapi0`` engine/instance methods are used, never
-the lunapi convenience wrappers: several of those construct a new
-``lunapi.proj``, which turns logging back on.
+Raw ``lunapi.lunapi0`` methods are used where possible. Parallel execution
+uses lunapi's process pool and restores logging after constructing its project.
 """
 
 import math
@@ -102,6 +101,41 @@ def frame(df):
     if df is None:
         return None
     return _frame(list(df.columns), [df[c].tolist() for c in df.columns])
+
+
+def proc_parallel(eng, cmdstr, **kwargs):
+    """Run lunapi's workers and snapshot the tables and per-record metadata."""
+    import lunapi
+
+    silenced = eng.is_silenced()
+    try:
+        project = lunapi.proj(verbose=False)
+    finally:
+        eng.silence(silenced)
+
+    # Parallel collation injects tables without clearing the previous cache.
+    # An evaluation with no sample rows clears it without opening any EDFs,
+    # including rows that may fail later in the workers.
+    rows = [[id_, edf, ",".join(sorted(annots))]
+            for id_, edf, annots in eng.get_sample_list()]
+    eng.clear()
+    try:
+        eng.eval("")
+    finally:
+        eng.set_sample_list(rows)
+
+    # R raises its own condition with the converted partial result in strict mode.
+    result = project.proc_parallel(cmdstr, strict=False, **kwargs)
+    file_output = bool(kwargs.get("out_db") or kwargs.get("out_text"))
+    return {
+        "ts": {} if file_output else eng.tables(),
+        "errors": frame(result.errors),
+        "stdout": frame(result.stdout),
+        "records": frame(result.records),
+        "workers": result.workers,
+        "out_paths": [str(p) for p in result._out_paths],
+        "file_output": file_output,
+    }
 
 
 # ---------------------------------------------------------------------------

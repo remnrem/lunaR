@@ -150,6 +150,55 @@ Proj <- R6::R6Class("proj",
     # --- running commands ------------------------------------------------
     proc = function(cmdstr) ProcResult$new(.lcall(self$eng$eval(.cmd_text(cmdstr)))),
     silent_proc = function(cmdstr) .silently(self$proc(cmdstr)),
+    proc_parallel = function(cmdstr, workers = NULL, batch_size = NULL,
+                             params = NULL, param_file = NULL, strict = FALSE,
+                             progress = TRUE, out_db = NULL, out_text = NULL,
+                             in_memory = NULL, n1 = NULL, n2 = NULL,
+                             ids = NULL, skip = NULL) {
+      if (!is.null(params)) {
+        if (!is.list(params) || is.data.frame(params) ||
+            (length(params) && (is.null(names(params)) || anyNA(names(params)) ||
+                                any(!nzchar(names(params)))))) {
+          .luna_abort("params must be a named list of Luna variables")
+        }
+        params <- lapply(params, .coerce_var_value)
+      }
+      if (is.function(progress)) {
+        callback <- progress
+        progress <- function(event) callback(.py(event))
+      }
+      meta <- .lcall(.br()$proc_parallel(
+        self$eng, .cmd_text(cmdstr),
+        workers = .parallel_int(workers, "workers"),
+        batch_size = .parallel_int(batch_size, "batch_size"),
+        params = params,
+        param_file = if (is.null(param_file)) NULL else path.expand(param_file),
+        progress = progress,
+        out_db = if (is.null(out_db)) NULL else path.expand(out_db),
+        out_text = if (is.null(out_text)) NULL else path.expand(out_text),
+        in_memory = in_memory,
+        n1 = .parallel_int(n1, "n1"), n2 = .parallel_int(n2, "n2"),
+        ids = .parallel_ids(ids), skip = .parallel_ids(skip)))
+      result <- ProcResult$new(meta[["ts"]], metadata = meta)
+      if (isTRUE(strict) && self$nobs() == 0L) {
+        .luna_abort("parallel processing failed: no records in sample list",
+                    class = "luna_proc_error", result = result)
+      }
+      if (isTRUE(strict) && !result$ok) {
+        .luna_abort(sprintf("parallel processing failed for %d record(s)",
+                            nrow(result$errors)), class = "luna_proc_error", result = result)
+      }
+      result
+    },
+    procn = function(cmdstr, workers = NULL, batch_size = NULL,
+                     params = NULL, param_file = NULL, strict = FALSE,
+                     progress = TRUE, out_db = NULL, out_text = NULL,
+                     in_memory = NULL, n1 = NULL, n2 = NULL,
+                     ids = NULL, skip = NULL) {
+      self$proc_parallel(cmdstr, workers, batch_size, params, param_file,
+                         strict, progress, out_db, out_text, in_memory,
+                         n1, n2, ids, skip)
+    },
     desc = function() {
       d <- .desc_df(.lcall(.silently(.py(self$eng$desc()))))
       print(d, right = FALSE)
@@ -171,3 +220,16 @@ Proj <- R6::R6Class("proj",
     reinit = function() invisible(.lcall(self$eng$reinit()))
   )
 )
+
+.parallel_int <- function(x, name) {
+  if (is.null(x)) return(NULL)
+  if (!.is_index(x) || !is.finite(x) || x < 1 || x > .Machine$integer.max) {
+    .luna_abort(paste(name, "must be a positive integer or NULL"))
+  }
+  as.integer(x)
+}
+
+.parallel_ids <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (length(x) == 1L) as.character(x) else .strs(x)
+}

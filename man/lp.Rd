@@ -74,7 +74,7 @@ Drawn with base R graphics on the current device. lunapi's \code{xsize}/
 \section{Everything else}{
 
 \code{lp$py} is the lunapi Python module itself (via reticulate), for parts
-not wrapped here, such as \code{moonbeam}, \code{destrat}, \code{proc_parallel()} or
+not wrapped here, such as \code{moonbeam}, \code{destrat} or
 \code{pops()}; their results are reticulate objects.
 }
 

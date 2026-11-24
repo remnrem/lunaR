@@ -21,12 +21,49 @@
 #'   returns a [ProcResult]. As in lunapi, a record that cannot be loaded
 #'   stops the whole run; check with `validate()` first.
 #' * `silent_proc(cmdstr)`: the same, with console output off.
+#' * `procn(cmdstr, workers = NULL, batch_size = NULL, params = NULL,
+#'   param_file = NULL, strict = FALSE, progress = TRUE, out_db = NULL,
+#'   out_text = NULL, in_memory = NULL, n1 = NULL, n2 = NULL, ids = NULL,
+#'   skip = NULL)`: process a file-backed sample list using lunapi worker
+#'   processes, returning a [ProcResult] with R tables and per-record metadata.
+#'   `proc_parallel()` is the same method under its longer name.
 #' * `strata()`, `table(cmd, strata = "BL")`, `variables(cmd, strata)`,
-#'   `empty_result_set()`: the most recent results (from `proc()` or
+#'   `empty_result_set()`: the most recent in-memory results (from `proc()`, `procn()` or
 #'   `import_db()`). `strata` may be `"CH_F"` or `c("F", "CH")`.
 #' * `import_db(f, s = NULL)`: load a `luna -o` database (optionally only
 #'   IDs `s`); returns the IDs read, with tables available via `table()`.
 #' * `desc()`, `commands()`.
+#'
+#' @section Parallel processing:
+#' `workers` defaults to half the available CPUs, capped at 10 and at the
+#' number of selected records. `batch_size` controls records per worker batch.
+#' Workers do not inherit the parent's project variables: pass them as a
+#' named list in `params`, or in a Luna `param_file`. Values in `params`
+#' override the file, and use the same conversion as `vars()`.
+#' `n1`/`n2` select inclusive, 1-based sample-list rows. `ids` and `skip`
+#' accept character vectors or whitespace-separated ID strings.
+#' `progress` is `TRUE`, `FALSE`, or an R function receiving progress events.
+#'
+#' By default, failed records are collected in `r$errors` while successful
+#' tables are retained; `r$ok` reports whether there were no failures.
+#' With `strict = TRUE`, failures raise a `luna_proc_error` condition with
+#' the partial [ProcResult] in `e$result`.
+#'
+#' `out_db` writes per-worker databases (`prefix-1.db`, etc.); `out_text`
+#' writes per-individual text tables. They are mutually exclusive and
+#' disable in-memory table collection. Leave `in_memory = NULL` for this
+#' automatic choice, or set it to `FALSE` for file output. The result
+#' retains `errors`, `stdout`, `records`, `workers` and `out_paths`;
+#' table access raises `luna_file_output`. Read files with `import_db()`
+#' or `lp$read_text_table()`.
+#'
+#' ```r
+#' p <- lp$proj()
+#' p$sample_list("s.lst")
+#' r <- p$procn("PSD sig=${s} spectrum", workers = 4,
+#'               params = list(s = "EEG"))
+#' r$table("PSD", "CH_F")
+#' ```
 #'
 #' @section Variables and output:
 #' * `var(key, value)` / `vars(key, value)`: with no arguments all

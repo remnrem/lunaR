@@ -124,11 +124,12 @@
   trimws(msg)
 }
 
-.luna_abort <- function(msg, call = NULL, parent = NULL, class = NULL) {
+.luna_abort <- function(msg, call = NULL, parent = NULL, class = NULL, result = NULL) {
   msg <- paste(msg, collapse = "\n  ")
   cond <- structure(
     class = c(class, "luna_error", "error", "condition"),
     list(message = msg, call = call, parent = parent))
+  if (!is.null(result)) cond$result <- result
   stop(cond)
 }
 
